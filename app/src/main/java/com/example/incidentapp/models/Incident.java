@@ -14,9 +14,7 @@ public class Incident {
 
     public enum Status {
         OPEN, ACTIVE, CLOSED
-    }
-
-    ;
+    };
 
     public int getId() {
         return id;
@@ -84,6 +82,19 @@ public class Incident {
 
         return null;
     }
+
+    public static Incident updateIncident(String comment, boolean status, String officerId) {
+
+        return null;
+    }
+
+
+    public static Incident closeIncident(String comment, String officerId) {
+
+        return null;
+    }
+
+
 
 
     public static ArrayList<Incident> getAllIncidents() {

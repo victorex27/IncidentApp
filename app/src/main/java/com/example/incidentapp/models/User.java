@@ -1,22 +1,66 @@
 package com.example.incidentapp.models;
 
+import com.example.incidentapp.database.DbHelper;
+
 import java.util.ArrayList;
 
 public class User implements Person{
+    private int id;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String password;
+    private DbHelper dbHelper = null;
+
+    public  User(int id, String firstName, String lastName, String email){
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+    }
+
+    public  User(String firstName, String lastName, String email, String password){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+    }
+
+    public void setDbHelper(DbHelper dbHelper) {
+        this.dbHelper = dbHelper;
+    }
+
     @Override
     public int getId() {
-        return 0;
+        return id;
     }
 
     @Override
     public String getName() {
-        return null;
+        return String.format("%s %s", firstName, lastName );
     }
 
-    @Override
-    public boolean signIn() {
+    public String getFirstName(){
 
-        return false;
+        return firstName;
+    }
+
+    public String getLastName(){
+        return  lastName;
+    }
+
+    public String getEmail(){
+        return this.email;
+    }
+
+    public String getPassword(){
+        return  this.password;
+    }
+
+
+    public User signIn(String email, String password) {
+
+        return dbHelper.onGetUser(email, password);
     }
 
     @Override
@@ -24,8 +68,19 @@ public class User implements Person{
         return null;
     }
 
-    public boolean signUp(String username, String password){
+    public boolean signUp(){
+        int userId = dbHelper.onCreateUser(email, firstName, lastName, password);
+        return userId != -1 ;
+    }
 
-        return false;
+    public static ArrayList<User> getDefaultUsersForSeedingToDatabase(){
+
+        ArrayList<User> users = new ArrayList<>();
+
+        users.add( new User("amaobi", "obikobe", "amaobi@gmail.com", "password"));
+        users.add( new User("amanda", "aduchie", "amanda@gmail.com", "password"));
+
+        return users;
+
     }
 }
