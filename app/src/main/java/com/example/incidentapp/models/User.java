@@ -26,6 +26,12 @@ public class User implements Person{
         this.password = password;
     }
 
+    public  User( String email, String password){
+
+        this.email = email;
+        this.password = password;
+    }
+
     public void setDbHelper(DbHelper dbHelper) {
         this.dbHelper = dbHelper;
     }
@@ -58,14 +64,19 @@ public class User implements Person{
     }
 
 
-    public User signIn(String email, String password) {
+    public User signIn() {
 
         return dbHelper.onGetUser(email, password);
     }
 
-    @Override
+    public Incident createIncident(String topic, String description){
+
+
+        return dbHelper.onCreateIncident(id, topic, description);
+    }
+
     public ArrayList<Incident> getAllIncidents() {
-        return null;
+        return dbHelper.onGetUserIncident(id);
     }
 
     public boolean signUp(){

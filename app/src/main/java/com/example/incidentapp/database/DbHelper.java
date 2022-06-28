@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.incidentapp.models.Incident;
 import com.example.incidentapp.models.Officer;
 import com.example.incidentapp.models.Person;
 import com.example.incidentapp.models.User;
@@ -32,7 +33,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String CREATED_BY_COLUMN = "createdBy";
     private static final String STATUS_COLUMN = "status";
     private static final String CREATED_AT_COLUMN = "createdAt";
-    private static final String UPDATED_AT_COLUMN = "updatedAt";
+
     private static final String TIME_COLUMN = "currentTime";
     private static final String DATE_COLUMN = "currentDate";
     private static final String SCHEDULE_VENUE_COLUMN = "venue";
@@ -79,7 +80,6 @@ public class DbHelper extends SQLiteOpenHelper {
                 + COMMENT_COLUMN + " TEXT, "
                 + STATUS_COLUMN + " TEXT, "
                 + CREATED_AT_COLUMN + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                + UPDATED_AT_COLUMN + " TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
                 + CREATED_BY_COLUMN + " INT, "
                 + "FOREIGN KEY (" + CREATED_BY_COLUMN + ") REFERENCES " + USER_TABLE
                 + "(" + ID_COLUMN + ") )";
@@ -129,6 +129,47 @@ public class DbHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.close();
         return (int) insert;
+    }
+
+
+    public Incident onCreateIncident(int userId, String title, String description) {
+
+
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+
+        ContentValues cv = new ContentValues();
+
+        cv.put(CREATED_BY_COLUMN, userId);
+        cv.put(TOPIC_COLUMN, title);
+        cv.put(DESCRIPTION_COLUMN, description);
+
+        long insertId = sqLiteDatabase.insert(INCIDENT_TABLE, null, cv);
+
+
+        sqLiteDatabase.close();
+
+        if (insertId == -1) return null;
+        return new Incident((int) insertId, title, description);
+
+    }
+
+    public boolean onUpdateIncident(int incidentId, String comment, Incident.STATUS status) {
+
+
+        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+
+        ContentValues cv = new ContentValues();
+
+        cv.put(COMMENT_COLUMN, comment);
+        cv.put(STATUS_COLUMN, String.valueOf(status));
+
+        long insertId = sqLiteDatabase.update(INCIDENT_TABLE, cv, ID_COLUMN + "=?", new String[]{String.valueOf(incidentId)});
+
+
+        sqLiteDatabase.close();
+
+        return insertId != -1;
+
     }
 
     public void onAddUsers(SQLiteDatabase sqLiteDatabase, List<User> users) {
@@ -194,47 +235,31 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
-    public long onAddUserImage(int id, String userImage) {
-
-        Log.i(TAG, "adding user images");
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-
-        ContentValues cv = new ContentValues();
-
-        cv.put(ID_COLUMN, id);
-        cv.put(TOPIC_COLUMN, userImage);
-
-        long insert = sqLiteDatabase.insert(INCIDENT_TABLE, null, cv);
-        Log.i(TAG, "added user images");
-        sqLiteDatabase.close();
-        return insert;
-    }
-
-    public boolean onAddUserToAttendanceRegister(int userId, int scheduleId, double confidenceLevel) {
-
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-
-        ContentValues cv = new ContentValues();
-
-        Log.d(TAG, "On Add User: " + scheduleId);
-
-        Date date = new Date();
-
-        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm a");
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-M-yyyy ");
-
-        cv.put(ID_COLUMN, userId);
-        cv.put(SCHEDULE_ID_COLUMN, scheduleId);
-        cv.put(TIME_COLUMN, timeFormatter.format(date));
-        cv.put(DATE_COLUMN, dateFormatter.format(date));
-        cv.put(CONFIDENCE_LEVEL_COLUMN, confidenceLevel);
-
-        long insert = sqLiteDatabase.insertWithOnConflict(STUDENT_ATTENDANCE_TABLE, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
-        Log.i(TAG, "added user to attendance: insertId " + insert);
-        sqLiteDatabase.close();
-
-        return insert != -1;
-    }
+//    public boolean onAddUserToAttendanceRegister(int userId, int scheduleId, double confidenceLevel) {
+//
+//        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+//
+//        ContentValues cv = new ContentValues();
+//
+//        Log.d(TAG, "On Add User: " + scheduleId);
+//
+//        Date date = new Date();
+//
+//        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm a");
+//        SimpleDateFormat dateFormatter = new SimpleDateFormat("dd-M-yyyy ");
+//
+//        cv.put(ID_COLUMN, userId);
+//        cv.put(SCHEDULE_ID_COLUMN, scheduleId);
+//        cv.put(TIME_COLUMN, timeFormatter.format(date));
+//        cv.put(DATE_COLUMN, dateFormatter.format(date));
+//        cv.put(CONFIDENCE_LEVEL_COLUMN, confidenceLevel);
+//
+//        long insert = sqLiteDatabase.insertWithOnConflict(STUDENT_ATTENDANCE_TABLE, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
+//        Log.i(TAG, "added user to attendance: insertId " + insert);
+//        sqLiteDatabase.close();
+//
+//        return insert != -1;
+//    }
 
     private Person onGetPerson(String email, String password, String nameOfTable) {
 
@@ -274,202 +299,48 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
-    public User onGetUser(String email, String password) {
-        Log.i(TAG, "getting user by email ");
+    public ArrayList<Incident> onGetUserIncident(int userId) {
 
-        return (User) onGetPerson(email, password, USER_TABLE);
-    }
-
-    public Officer onGetOfficer(String email, String password) {
-        Log.i(TAG, "getting officer by email ");
-
-        return (Officer) onGetPerson(email, password, OFFICER_TABLE);
-    }
-
-    ;
-
-
-    public String onGetStudentName(int id) {
-        Log.i(TAG, "getting user by id: ");
-
-        String name = "";
+        ArrayList<Incident> incidents = new ArrayList<>();
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
 
 
-        Cursor cursor = sqLiteDatabase.query(true, USER_TABLE, new String[]{
-                FIRST_NAME_COLUMN, LAST_NAME_COLUMN
-        }, ID_COLUMN + "=?", new String[]{String.valueOf(id)}, null, null, null, null);
-
-        if (cursor.moveToFirst()) {
-
-
-            String firstName = cursor.getString(cursor.getColumnIndexOrThrow(FIRST_NAME_COLUMN));
-            String lastName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));
-
-            name = String.format("%s %s", firstName, lastName);
-        }
-
-        if (!cursor.isClosed()) {
-            cursor.close();
-        }
-        Log.i(TAG, "gotten user");
-        sqLiteDatabase.close();
-
-        return name;
-    }
-
-
-    public ArrayList<UserModel> onGetUsers() {
-        Log.i(TAG, "getting users");
-
-        ArrayList<UserModel> output = new ArrayList<>();
-        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
-
-
-        Cursor cursor = sqLiteDatabase.query(true, USER_TABLE, new String[]{
-                ID_COLUMN, EMAIL_COLUMN, FIRST_NAME_COLUMN, LAST_NAME_COLUMN
-        }, null, null, null, null, null, null);
-
-        if (cursor.moveToFirst()) {
-
-            do {
-
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(ID_COLUMN));
-                String email = cursor.getString(cursor.getColumnIndexOrThrow(EMAIL_COLUMN));
-                String firstName = cursor.getString(cursor.getColumnIndexOrThrow(FIRST_NAME_COLUMN));
-                String lastName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));
-
-                UserModel user = new UserModel(email, firstName, lastName, id);
-
-                output.add(user);
-
-            } while (cursor.moveToNext());
-        }
-
-        if (!cursor.isClosed()) {
-            cursor.close();
-        }
-
-        sqLiteDatabase.close();
-        Log.i(TAG, "gotten users");
-
-        return output;
-    }
-
-
-    public ArrayList<ScheduleEntry> onGetSchedule() {
-        Log.i(TAG, "getting schedule from database");
-
-        ArrayList<ScheduleEntry> output = new ArrayList<>();
-        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
-
-        Cursor cursor = sqLiteDatabase.query(true, OFFICER_TABLE, new String[]{
-                ID_COLUMN, SCHEDULE_DAY_COLUMN, COURSE_CODE_COLUMN, SCHEDULE_START_TIME_COLUMN, SCHEDULE_END_TIME_COLUMN, SCHEDULE_VENUE_COLUMN
-        }, null, null, null, null, null, null);
-
-        if (cursor.moveToFirst()) {
-
-            do {
-
-                int id = cursor.getInt(cursor.getColumnIndexOrThrow(ID_COLUMN));
-                String day = cursor.getString(cursor.getColumnIndexOrThrow(SCHEDULE_DAY_COLUMN));
-                String courseCode = cursor.getString(cursor.getColumnIndexOrThrow(COURSE_CODE_COLUMN));
-                String startTime = cursor.getString(cursor.getColumnIndexOrThrow(SCHEDULE_START_TIME_COLUMN));
-                String endTime = cursor.getString(cursor.getColumnIndexOrThrow(SCHEDULE_END_TIME_COLUMN));
-                String venue = cursor.getString(cursor.getColumnIndexOrThrow(SCHEDULE_VENUE_COLUMN));
-
-                ScheduleEntry entry = new ScheduleEntry(day, courseCode, startTime, endTime, venue).setId(id);
-
-                output.add(entry);
-
-            } while (cursor.moveToNext());
-        }
-
-        if (!cursor.isClosed()) {
-            cursor.close();
-        }
-        Log.i(TAG, "gotten users");
-        sqLiteDatabase.close();
-
-        return output;
-    }
-
-
-    public ArrayList<UserModel> onGetUsersImages() {
-        Log.i(TAG, "getting user images");
-
-        ArrayList<UserModel> users;
-
-
-        users = onGetUsers();
-
-        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
-
-        users.forEach(user -> {
-
-            System.out.println(user.getFirstName());
-            Cursor cursor = sqLiteDatabase.query(true, STUDENT_IMG_TABLE, new String[]{
-                    TOPIC_COLUMN,
-            }, ID_COLUMN + "= ?", new String[]{String.valueOf(user.getId())}, null, null, null, null);
-
-            if (cursor.moveToFirst()) {
-
-                do {
-
-                    String imageLocation = cursor.getString(cursor.getColumnIndexOrThrow(TOPIC_COLUMN));
-                    user.addToImages(imageLocation);
-
-                } while (cursor.moveToNext());
-            }
-
-            if (!cursor.isClosed()) {
-                cursor.close();
-            }
-
-
-            Log.i(TAG, "gotten user images");
-
-        });
-
-        sqLiteDatabase.close();
-
-        return users;
-    }
-
-    public ArrayList<AttendanceModel> getAttendanceList(int scheduleId) {
-
-        ArrayList<AttendanceModel> attendanceList = new ArrayList<>();
-        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
-
-        Log.d(TAG, "schedule id; " + scheduleId);
-
-        String query = "SELECT " + STUDENT_ATTENDANCE_TABLE + ".*, " + USER_TABLE + ".* " +
-                ", " + OFFICER_TABLE + "." + SCHEDULE_DAY_COLUMN +
-                " FROM " + STUDENT_ATTENDANCE_TABLE
+        String query = "SELECT " + INCIDENT_TABLE + ".*" +
+                ", " + USER_TABLE + "." + FIRST_NAME_COLUMN + " " +
+                ", " + USER_TABLE + "." + LAST_NAME_COLUMN + " " +
+                ", " + USER_TABLE + "." + EMAIL_COLUMN + " " +
+                ", " + USER_TABLE + "." + ID_COLUMN + " as userId " +
+                " FROM " + INCIDENT_TABLE
                 + " INNER JOIN " + USER_TABLE
-                + " ON " + USER_TABLE + "." + ID_COLUMN + " = " + STUDENT_ATTENDANCE_TABLE + "." + ID_COLUMN
-                + " INNER JOIN " + OFFICER_TABLE
-                + " ON " + STUDENT_ATTENDANCE_TABLE + "." + SCHEDULE_ID_COLUMN + " = " + OFFICER_TABLE + "." + ID_COLUMN
-                + " WHERE " + STUDENT_ATTENDANCE_TABLE + "." + SCHEDULE_ID_COLUMN + " = ?"
-                + " ORDER BY " + TIME_COLUMN + " DESC";
+                + " ON " + USER_TABLE + "." + ID_COLUMN + " = " + INCIDENT_TABLE + "." + CREATED_BY_COLUMN
+                + " WHERE " + INCIDENT_TABLE + "." + CREATED_BY_COLUMN + " = ?"
+                + " ORDER BY " + CREATED_AT_COLUMN + " DESC";
 
-//        String query = "SELECT * FROM student INNER JOIN attendance ON student.id= attendance.id inner join schedule on attendance.scheduleId = schedule.id";
-        Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(scheduleId)});
+        Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(userId)});
         if (cursor.moveToFirst()) {
-
-            Log.d(TAG, "Returned result " + cursor.getColumnIndexOrThrow(SCHEDULE_ID_COLUMN));
 
             do {
 
                 int id = cursor.getInt(cursor.getColumnIndexOrThrow(ID_COLUMN));
-                String firstName = cursor.getString(cursor.getColumnIndexOrThrow(FIRST_NAME_COLUMN));
-                String lastName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));
+                String topic = cursor.getString(cursor.getColumnIndexOrThrow(TOPIC_COLUMN));
+                String description = cursor.getString(cursor.getColumnIndexOrThrow(DESCRIPTION_COLUMN));
+                String comment = cursor.getString(cursor.getColumnIndexOrThrow(COMMENT_COLUMN));
+                String status = cursor.getString(cursor.getColumnIndexOrThrow(STATUS_COLUMN));
+                String createdAt = cursor.getString(cursor.getColumnIndexOrThrow(CREATED_AT_COLUMN));
                 String email = cursor.getString(cursor.getColumnIndexOrThrow(EMAIL_COLUMN));
-                String time = cursor.getString(cursor.getColumnIndexOrThrow(TIME_COLUMN));
-                String date = cursor.getString(cursor.getColumnIndexOrThrow(DATE_COLUMN));
-                UserModel user = new UserModel(email, firstName, lastName, id);
+                String firstName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));
+                String lastName = cursor.getString(cursor.getColumnIndexOrThrow(FIRST_NAME_COLUMN));
 
-                attendanceList.add(new AttendanceModel(user, date + " " + time));
+
+                User user = new User(id, firstName, lastName, email);
+
+                incidents.add(
+                        new Incident(id, topic, description)
+                                .setCreatedBy(user)
+                                .setStatus(status)
+                                .setCreatedAt(createdAt)
+                                .setComment(comment));
+
 
             } while (cursor.moveToNext());
         }
@@ -482,15 +353,58 @@ public class DbHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.close();
 
-        return attendanceList;
+        return incidents;
+
     }
 
-    public void deletePictureFromImageTable(int id) {
+
+    public ArrayList<Incident> onGetIncidentForOfficer(String status) {
+
+        ArrayList<Incident> incidents = new ArrayList<>();
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
 
-        String query = "DELETE FROM " + STUDENT_IMG_TABLE + " WHERE " + ID_COLUMN + " = ?";
 
-        Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(id)});
+        String query = "SELECT " + INCIDENT_TABLE + ".*" +
+                ", " + USER_TABLE + "." + FIRST_NAME_COLUMN + " " +
+                ", " + USER_TABLE + "." + LAST_NAME_COLUMN + " " +
+                ", " + USER_TABLE + "." + EMAIL_COLUMN + " " +
+                ", " + USER_TABLE + "." + ID_COLUMN + " as userId " +
+                " FROM " + INCIDENT_TABLE
+                + " INNER JOIN " + USER_TABLE
+                + " ON " + USER_TABLE + "." + ID_COLUMN + " = " + INCIDENT_TABLE + "." + CREATED_BY_COLUMN
+                + " WHERE " + INCIDENT_TABLE + "." + STATUS_COLUMN + " = ?"
+                + " ORDER BY " + CREATED_AT_COLUMN + " DESC";
+
+        Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(status)});
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow(ID_COLUMN));
+                String topic = cursor.getString(cursor.getColumnIndexOrThrow(TOPIC_COLUMN));
+                String description = cursor.getString(cursor.getColumnIndexOrThrow(DESCRIPTION_COLUMN));
+                String comment = cursor.getString(cursor.getColumnIndexOrThrow(COMMENT_COLUMN));
+//                String status = cursor.getString(cursor.getColumnIndexOrThrow(STATUS_COLUMN));
+                String createdAt = cursor.getString(cursor.getColumnIndexOrThrow(CREATED_AT_COLUMN));
+                String email = cursor.getString(cursor.getColumnIndexOrThrow(EMAIL_COLUMN));
+                String firstName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));
+                String lastName = cursor.getString(cursor.getColumnIndexOrThrow(FIRST_NAME_COLUMN));
+
+
+                User user = new User(id, firstName, lastName, email);
+
+                incidents.add(
+                        new Incident(id, topic, description)
+                                .setCreatedBy(user)
+                                .setStatus(status)
+                                .setCreatedAt(createdAt)
+                                .setComment(comment));
+
+
+            } while (cursor.moveToNext());
+        }
+
+        Log.d(TAG, "done");
 
         if (!cursor.isClosed()) {
             cursor.close();
@@ -498,22 +412,20 @@ public class DbHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.close();
 
+        return incidents;
 
     }
 
+    public User onGetUser(String email, String password) {
+        Log.i(TAG, "getting user by email ");
 
-    public void deleteUserFromRegistration(int id) {
-        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
+        return (User) onGetPerson(email, password, USER_TABLE);
+    }
 
-        String query = "DELETE FROM " + USER_TABLE + " WHERE " + ID_COLUMN + " = ?";
+    public Officer onGetOfficer(String email, String password) {
+        Log.i(TAG, "getting officer by email ");
 
-        Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(id)});
-        if (!cursor.isClosed()) {
-            cursor.close();
-        }
-
-        sqLiteDatabase.close();
-
+        return (Officer) onGetPerson(email, password, OFFICER_TABLE);
     }
 
 

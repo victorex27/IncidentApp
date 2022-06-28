@@ -29,6 +29,12 @@ public class Officer implements Person{
         return password;
     }
 
+    public  Officer( String email, String password){
+
+        this.email = email;
+        this.password = password;
+    }
+
     public  Officer(int id, String firstName, String lastName, String email){
         this.id = id;
         this.firstName = firstName;
@@ -61,9 +67,9 @@ public class Officer implements Person{
         return dbHelper.onGetOfficer(email, password);
     }
 
-    @Override
-    public ArrayList<Incident> getAllIncidents() {
-        return null;
+
+    public ArrayList<Incident> getAllIncidents(String status) {
+        return dbHelper.onGetIncidentForOfficer(status);
     }
 
     public static ArrayList<Officer> getDefaultUsersForSeedingToDatabase(){
@@ -74,6 +80,19 @@ public class Officer implements Person{
         users.add( new Officer("amara", "tinu", "tinu@gmail.com", "password"));
 
         return users;
+
+    }
+
+
+    public boolean updateIncident(int incidentId,String comment, Incident.STATUS status) {
+
+        return dbHelper.onUpdateIncident(incidentId,comment,status);
+    }
+
+
+    public boolean closeIncident(int incidentId,String comment) {
+
+        return updateIncident( incidentId ,comment, Incident.STATUS.CLOSED);
 
     }
 

@@ -9,10 +9,11 @@ public class Incident {
     private String description;
     private String comments;
     private String status;
-    private int createdBy;
+    private User createdBy;
     private String createdAt;
 
-    public enum Status {
+
+    public static enum STATUS {
         OPEN, ACTIVE, CLOSED
     };
 
@@ -36,7 +37,7 @@ public class Incident {
         return status;
     }
 
-    public int getCreatedBy() {
+    public User getCreatedBy() {
         return createdBy;
     }
 
@@ -72,42 +73,11 @@ public class Incident {
         return this;
     }
 
-    public Incident setCreatedBy(int createdBy) {
+    public Incident setCreatedBy(User createdBy) {
         this.createdBy = createdBy;
         return this;
     }
 
-
-    public static Incident createIncident(int userId, String topic, String description) {
-
-        return null;
-    }
-
-    public static Incident updateIncident(String comment, boolean status, String officerId) {
-
-        return null;
-    }
-
-
-    public static Incident closeIncident(String comment, String officerId) {
-
-        return null;
-    }
-
-
-
-
-    public static ArrayList<Incident> getAllIncidents() {
-        return null;
-    }
-
-    public static ArrayList<Incident> getIncidentsByStatus() {
-        return null;
-    }
-
-    public static ArrayList<Incident> getIncidentCreatedByUser(int userId) {
-        return null;
-    }
 
     public static Incident getIncidentById(int id) {
 
