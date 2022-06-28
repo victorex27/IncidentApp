@@ -281,9 +281,11 @@ public class DbHelper extends SQLiteOpenHelper {
             String firstName = cursor.getString(cursor.getColumnIndexOrThrow(FIRST_NAME_COLUMN));
             String lastName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));
 
-            if (name.equals(USER_TABLE)) {
+            if (nameOfTable.equals(USER_TABLE) ) {
+                System.out.println("name of table: "+nameOfTable);
                 user = new User(id, firstName, lastName, email);
             } else {
+                System.out.println("name of table: 2 "+nameOfTable);
                 user = new Officer(id, firstName, lastName, email);
             }
 

@@ -62,7 +62,7 @@ public class Officer implements Person{
         return null;
     }
 
-    public Officer signIn(String email, String password) {
+    public Officer signIn() {
 
         return dbHelper.onGetOfficer(email, password);
     }
