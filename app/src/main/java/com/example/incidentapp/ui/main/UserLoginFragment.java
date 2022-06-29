@@ -1,26 +1,26 @@
 package com.example.incidentapp.ui.main;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.incidentapp.R;
+import com.example.incidentapp.UserActivity;
 import com.example.incidentapp.database.DbHelper;
 import com.example.incidentapp.models.User;
 import com.example.incidentapp.validator.TextFieldValidator;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
 
 
 /**
@@ -90,8 +90,11 @@ public class UserLoginFragment extends Fragment {
             if (validUser == null)
                 throw new Exception("Invalid Login.");
 
+            user = validUser;
+
             Snackbar.make(getView(), "Login", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
+            goToCreateIncidentActivity();
 
         } catch (Exception ex) {
             Snackbar.make(getView(), ex.getMessage(), Snackbar.LENGTH_LONG)
@@ -104,17 +107,17 @@ public class UserLoginFragment extends Fragment {
         super.onDestroyView();
     }
 
-    public void onMoveToSignUpActivity(View view) {
-        FragmentManager fm = getActivity().getSupportFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
+    private void goToCreateIncidentActivity(){
+        Intent intent = new Intent( getActivity(), UserActivity.class);
+        Gson gson = new Gson();
 
-        Fragment newFragment = UserSignUpFragment.newInstance();
+        String objAsString = gson.toJson(user);
+        System.out.println("this is the user name we are sending : "+user.getName());
+        intent.putExtra("user", objAsString);
+         // send user to that activity
+        startActivity(intent);
 
-        ft.remove(UserLoginFragment.newInstance());
-//        ft.replace(R.id.container, newFragment);
-//
-        ft.addToBackStack(UserSignUpFragment.class.getSimpleName());
-        ft.commitAllowingStateLoss();
+        ( (Activity)getActivity()).overridePendingTransition(0,0);
     }
 
 

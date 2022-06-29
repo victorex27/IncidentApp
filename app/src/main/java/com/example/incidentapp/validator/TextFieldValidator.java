@@ -29,4 +29,14 @@ public class TextFieldValidator {
             throw new Exception("Password field cannot be empty ");
         }
     }
+
+    public static void validateComplaintsInformation(String topic, String description) throws Exception {
+        if (topic.isEmpty()) {
+            throw new Exception("Topic field cannot be empty ");
+        }
+
+        if (description.isEmpty()) {
+            throw new Exception("Description field cannot be empty ");
+        }
+    }
 }

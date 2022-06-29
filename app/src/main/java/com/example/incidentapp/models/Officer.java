@@ -1,10 +1,14 @@
 package com.example.incidentapp.models;
 
+import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.example.incidentapp.database.DbHelper;
 
 import java.util.ArrayList;
 
-public class Officer implements Person{
+public class Officer implements Person, Parcelable {
 
     private int id;
     private String firstName;
@@ -12,6 +16,7 @@ public class Officer implements Person{
     private String email;
     private String password;
     private DbHelper dbHelper = null;
+    private int mData;
 
     public String getFirstName() {
         return firstName;
@@ -59,7 +64,7 @@ public class Officer implements Person{
 
     @Override
     public String getName() {
-        return null;
+        return String.format("%s %s",firstName,lastName);
     }
 
     public Officer signIn() {
@@ -68,8 +73,15 @@ public class Officer implements Person{
     }
 
 
-    public ArrayList<Incident> getAllIncidents(String status) {
-        return dbHelper.onGetIncidentForOfficer(status);
+    public static Officer getOfficerById(int id, Context context) {
+
+        DbHelper dbHelper = new DbHelper(context);
+        return dbHelper.getOfficerById(id);
+    }
+
+
+    public ArrayList<Incident> getAllIncidents() {
+        return dbHelper.onGetIncidentForOfficer();
     }
 
     public static ArrayList<Officer> getDefaultUsersForSeedingToDatabase(){
@@ -97,4 +109,28 @@ public class Officer implements Person{
     }
 
 
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(mData);
+    }
+
+    public static final Parcelable.Creator<Officer> CREATOR = new Parcelable.Creator<Officer>() {
+        public Officer createFromParcel(Parcel in) {
+            return new Officer(in);
+        }
+
+        public Officer[] newArray(int size) {
+            return new Officer[size];
+        }
+    };
+
+    // example constructor that takes a Parcel and gives you an object populated with it's values
+    private Officer(Parcel in) {
+        mData = in.readInt();
+    }
 }

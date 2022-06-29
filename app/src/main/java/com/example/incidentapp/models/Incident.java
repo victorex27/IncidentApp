@@ -53,6 +53,14 @@ public class Incident {
 
     }
 
+    public Incident(String topic, String description) {
+
+
+        this.topic = topic;
+        this.description = description;
+
+    }
+
     public Incident setId(int id) {
         this.id = id;
         return this;
@@ -82,5 +90,19 @@ public class Incident {
     public static Incident getIncidentById(int id) {
 
         return null;
+    }
+
+    public static ArrayList<Incident> getDefaultIncidentsForSeedingToDatabase(){
+
+        ArrayList<Incident> incidents = new ArrayList<>();
+
+       User user = new User(1,"amaobi", "obikobe", "amaobi@gmail.com");
+
+       incidents.add( new Incident("hello", "test 1").setCreatedBy(user));
+        incidents.add( new Incident("hello 2", "test 2").setCreatedBy(user));
+
+
+        return incidents;
+
     }
 }

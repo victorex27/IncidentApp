@@ -96,8 +96,10 @@ public class UserSignUpFragment extends Fragment {
 
             if(!user.signUp()) throw  new Exception("Unable to create user with the given information.");
 
-            Snackbar.make(getView(), "user was created", Snackbar.LENGTH_LONG)
+            Snackbar.make(getView(), "User account created. Please login", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
+
+            onMoveToLoginActivity(view);
 
         }catch(Exception ex){
             Snackbar.make(getView(), ex.getMessage(), Snackbar.LENGTH_LONG)
@@ -115,14 +117,7 @@ public class UserSignUpFragment extends Fragment {
         ft.addToBackStack(UserLoginFragment.class.getSimpleName());
         ft.commitAllowingStateLoss();
     }
-    private void goToCreateIncidentActivity(){
-//        Intent intent = new Intent( getActivity(), ActivityName.class);
 
-        // send user to that activity
-//        startActivity(intent);
-
-//        ( (Activity)getActivity()).overridePendingTransition(0,0);
-    }
 
     @Override
     public void onDestroyView() {

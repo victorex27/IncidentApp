@@ -1,12 +1,16 @@
 package com.example.incidentapp.ui.main;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
@@ -14,12 +18,15 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.incidentapp.OfficerActivity;
 import com.example.incidentapp.R;
+import com.example.incidentapp.UserActivity;
 import com.example.incidentapp.database.DbHelper;
 import com.example.incidentapp.models.Officer;
 import com.example.incidentapp.models.User;
 import com.example.incidentapp.validator.TextFieldValidator;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -89,14 +96,34 @@ public class OfficerLoginFragment extends Fragment {
             if (validUser == null)
                 throw new Exception("Invalid Login.");
 
-            Snackbar.make(getView(), "Login", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+            user = validUser;
+
+            goToIncidentViewActivity();
 
         } catch (Exception ex) {
-            Snackbar.make(getView(), ex.getMessage(), Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
+//            Snackbar.make(getView(), ex.getMessage(), Snackbar.LENGTH_LONG)
+//                    .setAction("Action", null).show();
+
+            Toast.makeText(getContext(), ex.getMessage(), Toast.LENGTH_LONG).show();
+
         }
     }
+
+    private void goToIncidentViewActivity(){
+        Intent intent = new Intent( getActivity(), OfficerActivity.class);
+
+
+        Gson gson = new Gson();
+
+        String objAsString = gson.toJson(user);
+        System.out.println("this is the user name we are sending : "+user.getName());
+        intent.putExtra("user", objAsString);
+        // send user to that activity
+        startActivity(intent);
+
+        ( (Activity)getActivity()).overridePendingTransition(0,0);
+    }
+
 
     @Override
     public void onDestroyView() {

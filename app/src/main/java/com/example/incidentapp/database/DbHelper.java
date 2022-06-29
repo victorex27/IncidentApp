@@ -95,6 +95,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
             onAddUsers(sqLiteDatabase, User.getDefaultUsersForSeedingToDatabase());
             onAddOfficers(sqLiteDatabase, Officer.getDefaultUsersForSeedingToDatabase());
+            onAddComplaints(sqLiteDatabase, Incident.getDefaultIncidentsForSeedingToDatabase());
 //            onAddSchedules(sqLiteDatabase, scheduleEntries);
 
         } catch (Exception e) {
@@ -135,6 +136,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public Incident onCreateIncident(int userId, String title, String description) {
 
 
+
         SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
 
         ContentValues cv = new ContentValues();
@@ -146,7 +148,9 @@ public class DbHelper extends SQLiteOpenHelper {
         long insertId = sqLiteDatabase.insert(INCIDENT_TABLE, null, cv);
 
 
+        System.out.println("Insert id: "+insertId);
         sqLiteDatabase.close();
+
 
         if (insertId == -1) return null;
         return new Incident((int) insertId, title, description);
@@ -235,6 +239,37 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
+    public void onAddComplaints(SQLiteDatabase sqLiteDatabase, List<Incident> incidents) {
+
+        Log.i(TAG, "Creating Default Incident");
+
+
+        incidents.forEach(incident -> {
+
+            ContentValues cv = new ContentValues();
+            /**
+             * TODO
+             * Use transactions if possible
+             * */
+
+
+            cv.put(CREATED_BY_COLUMN, incident.getCreatedBy().getId());
+            cv.put(TOPIC_COLUMN, incident.getTopic());
+            cv.put(DESCRIPTION_COLUMN, incident.getDescription());
+
+            long insert = sqLiteDatabase.insert(INCIDENT_TABLE, null, cv);
+            Log.i(TAG, "Created Incident table ");
+
+
+        });
+
+//        sqLiteDatabase.close();
+
+
+        Log.i(TAG, "Done creating officers");
+
+    }
+
 //    public boolean onAddUserToAttendanceRegister(int userId, int scheduleId, double confidenceLevel) {
 //
 //        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
@@ -260,6 +295,39 @@ public class DbHelper extends SQLiteOpenHelper {
 //
 //        return insert != -1;
 //    }
+
+    public Officer getOfficerById(int id){
+        String name = "";
+        Officer user = null;
+        SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
+
+
+        Cursor cursor = sqLiteDatabase.query(true, OFFICER_TABLE, new String[]{
+                FIRST_NAME_COLUMN, LAST_NAME_COLUMN, EMAIL_COLUMN
+        }, ID_COLUMN + "=?", new String[]{String.valueOf(id)}, null, null, null, null);
+
+        if (cursor.moveToFirst()) {
+
+
+            String email = cursor.getString(cursor.getColumnIndexOrThrow(EMAIL_COLUMN));
+            String firstName = cursor.getString(cursor.getColumnIndexOrThrow(FIRST_NAME_COLUMN));
+            String lastName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));
+
+
+
+                user = new Officer(id, firstName, lastName, email);
+
+
+        }
+
+        if (!cursor.isClosed()) {
+            cursor.close();
+        }
+        Log.i(TAG, "gotten user");
+        sqLiteDatabase.close();
+
+        return user;
+    }
 
     private Person onGetPerson(String email, String password, String nameOfTable) {
 
@@ -360,7 +428,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
-    public ArrayList<Incident> onGetIncidentForOfficer(String status) {
+    public ArrayList<Incident> onGetIncidentForOfficer() {
 
         ArrayList<Incident> incidents = new ArrayList<>();
         SQLiteDatabase sqLiteDatabase = this.getReadableDatabase();
@@ -374,19 +442,18 @@ public class DbHelper extends SQLiteOpenHelper {
                 " FROM " + INCIDENT_TABLE
                 + " INNER JOIN " + USER_TABLE
                 + " ON " + USER_TABLE + "." + ID_COLUMN + " = " + INCIDENT_TABLE + "." + CREATED_BY_COLUMN
-                + " WHERE " + INCIDENT_TABLE + "." + STATUS_COLUMN + " = ?"
                 + " ORDER BY " + CREATED_AT_COLUMN + " DESC";
 
-        Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{String.valueOf(status)});
+        Cursor cursor = sqLiteDatabase.rawQuery(query, new String[]{});
         if (cursor.moveToFirst()) {
-
+    Log.d("Her", query);
             do {
 
                 int id = cursor.getInt(cursor.getColumnIndexOrThrow(ID_COLUMN));
                 String topic = cursor.getString(cursor.getColumnIndexOrThrow(TOPIC_COLUMN));
                 String description = cursor.getString(cursor.getColumnIndexOrThrow(DESCRIPTION_COLUMN));
                 String comment = cursor.getString(cursor.getColumnIndexOrThrow(COMMENT_COLUMN));
-//                String status = cursor.getString(cursor.getColumnIndexOrThrow(STATUS_COLUMN));
+                String status = cursor.getString(cursor.getColumnIndexOrThrow(STATUS_COLUMN));
                 String createdAt = cursor.getString(cursor.getColumnIndexOrThrow(CREATED_AT_COLUMN));
                 String email = cursor.getString(cursor.getColumnIndexOrThrow(EMAIL_COLUMN));
                 String firstName = cursor.getString(cursor.getColumnIndexOrThrow(LAST_NAME_COLUMN));

@@ -1,16 +1,20 @@
 package com.example.incidentapp.models;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.example.incidentapp.database.DbHelper;
 
 import java.util.ArrayList;
 
-public class User implements Person{
+public class User implements Person, Parcelable {
     private int id;
     private String firstName;
     private String lastName;
     private String email;
     private String password;
     private DbHelper dbHelper = null;
+    private int mData;
 
     public  User(int id, String firstName, String lastName, String email){
         this.id = id;
@@ -93,5 +97,30 @@ public class User implements Person{
 
         return users;
 
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(mData);
+    }
+
+    public static final Parcelable.Creator<User> CREATOR = new Parcelable.Creator<User>() {
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
+
+    // example constructor that takes a Parcel and gives you an object populated with it's values
+    private User(Parcel in) {
+        mData = in.readInt();
     }
 }
